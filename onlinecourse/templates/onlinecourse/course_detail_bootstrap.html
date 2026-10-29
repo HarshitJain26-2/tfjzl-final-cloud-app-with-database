@@ -48,9 +48,55 @@
                         <div class="card-header"><h5>Lesson {{lesson.order|add:1}}: {{lesson.title}}</h5></div>
                         <div class="card-body">{{lesson.content}}</div>
                     </div>
+                {% empty %}
+                    <p class="text-muted">No lessons available for this course yet.</p>
                 {% endfor %}
             </div>
-            <!-- Course detail template changes go here -->
+
+            <!-- Task 4: Course detail template changes - Exam Section -->
+            {% if user.is_authenticated %}
+                <div class="mt-4 mb-5">
+                    <button type="button" class="btn btn-primary btn-block" data-toggle="collapse" data-target="#examCollapse" aria-expanded="false" aria-controls="examCollapse">
+                        Start Exam
+                    </button>
+                    <div class="collapse mt-3" id="examCollapse">
+                        <div class="card card-body">
+                            <h4 class="mb-3">Course Examination</h4>
+                            <form action="{% url 'onlinecourse:submit' course.id %}" method="post">
+                                {% csrf_token %}
+                                {% for question in course.question_set.all %}
+                                    <div class="card mb-3">
+                                        <div class="card-header">
+                                            <strong>Question {{ forloop.counter }}:</strong> {{ question.question_text }}
+                                            <span class="badge badge-info float-right">{{ question.grade }} Points</span>
+                                        </div>
+                                        <div class="card-body">
+                                            {% for choice in question.choice_set.all %}
+                                                <div class="form-check my-2">
+                                                    <input class="form-check-input" type="checkbox" name="choice_{{ choice.id }}" id="choice_{{ choice.id }}" value="{{ choice.id }}">
+                                                    <label class="form-check-label" for="choice_{{ choice.id }}">
+                                                        {{ choice.choice_text }}
+                                                    </label>
+                                                </div>
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                {% empty %}
+                                    <p class="text-muted">No exam questions available for this course yet.</p>
+                                {% endfor %}
+
+                                {% if course.question_set.all %}
+                                    <button type="submit" class="btn btn-success btn-lg btn-block mt-3">Submit Exam</button>
+                                {% endif %}
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            {% else %}
+                <div class="alert alert-info mt-4" role="alert">
+                    Please <a href="{% url 'onlinecourse:login' %}">login</a> to take the course exam.
+                </div>
+            {% endif %}
     </div>
 </body>
 </html>
